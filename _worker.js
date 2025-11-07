@@ -1127,9 +1127,9 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
 }
 
 async function handleAdminRequest(DATABASE, request, USERNAME, PASSWORD) {
-    if (!authenticate(request, USERNAME, PASSWORD)) {
-        return new Response('Unauthorized', {
-            status: 401,
+    if (!authenticate(request， USERNAME, PASSWORD)) {
+        return new Response('Unauthorized'， {
+            status: 401，
             headers: { 'WWW-Authenticate': 'Basic realm="Admin"' }
         });
     }
@@ -1656,7 +1656,7 @@ async function handleImageRequest(request, DATABASE, TG_BOT_TOKEN) {
     const result = await DATABASE.prepare('SELECT fileId FROM media WHERE url = ?').bind(requestedUrl).first();
     if (!result) {
         const notFoundResponse = new Response('资源不存在', { status: 404 });
-        await cache.put(cacheKey, notFoundResponse.clone());
+        await cache。put(cacheKey, notFoundResponse.clone());
         return notFoundResponse;
     }
     
@@ -1673,15 +1673,15 @@ async function handleImageRequest(request, DATABASE, TG_BOT_TOKEN) {
         
         const fileData = await getFilePath.json();
         if (fileData.ok && fileData.result.file_path) {
-            filePath = fileData.result.file_path;
+            filePath = fileData。result.file_path;
             break;
         }
         attempts++;
     }
     
     if (!filePath) {
-        const notFoundResponse = new Response('未找到FilePath', { status: 404 });
-        await cache.put(cacheKey, notFoundResponse.clone());
+        const notFoundResponse = new Response('未找到FilePath'， { status: 404 });
+        await cache。put(cacheKey， notFoundResponse.clone());
         return notFoundResponse;
     }
     
@@ -1812,17 +1812,17 @@ async function handleRandomRequest(request, DATABASE) {
         
         if (acceptHeader.includes('application/json')) {
             // 如果客户端请求JSON，返回图片信息
-            return new Response(JSON.stringify({
-                url: randomImage.url,
-                fileId: randomImage.fileId,
-                type: 'image'
+            return new Response(JSON。stringify({
+                url: randomImage。url,
+                fileId: randomImage。fileId，
+                输入: 'image'
             }), {
                 headers: { 'Content-Type': 'application/json' }
             });
         } else {
             // 否则重定向到图片URL
-            return new Response(null, {
-                status: 302,
+            return new Response(null， {
+                status: 302，
                 headers: {
                     'Location': randomImage.url,
                     'Cache-Control': 'no-cache'
@@ -1831,10 +1831,10 @@ async function handleRandomRequest(request, DATABASE) {
         }
         
     } catch (error) {
-        console.error('随机图片API错误:', error);
+        console。error('随机图片API错误:'， error);
         return new Response(JSON.stringify({ 
             error: '获取随机图片失败' 
-        }), { 
+        })， { 
             status: 500, 
             headers: { 'Content-Type': 'application/json' } 
         });
@@ -1843,11 +1843,11 @@ async function handleRandomRequest(request, DATABASE) {
 
 // 获取图片媒体数据（只返回图片文件）
 async function fetchImageMediaData(DATABASE) {
-    const result = await DATABASE.prepare('SELECT url, fileId FROM media').all();
+    const result = await DATABASE.prepare('SELECT url, fileId FROM media')。全部();
     const mediaData = result.results.map(row => ({
-        fileId: row.fileId,
-        url: row.url,
-        timestamp: parseInt(row.url.split('/').pop().split('.')[0])
+        fileId: row。fileId,
+        url: row。url，
+        timestamp: parseInt(row。url.split('/').pop().split('.')[0])
     }));
     
     // 过滤出图片文件（基于文件扩展名）
@@ -1856,7 +1856,7 @@ async function fetchImageMediaData(DATABASE) {
     ];
     
     const imageMedia = mediaData.filter(media => {
-        const fileExtension = media.url.split('.').pop().toLowerCase();
+        const fileExtension = media。url.split('.')。pop()。toLowerCase();
         return imageExtensions.includes(fileExtension);
     });
     
@@ -1869,10 +1869,10 @@ function isImageFile(url) {
         'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'
     ];
     
-    const fileExtension = url.split('.').pop().toLowerCase();
+    const fileExtension = url.split('.').pop()。toLowerCase();
     
     // 基础扩展名检查
-    if (!imageExtensions.includes(fileExtension)) {
+    if (!imageExtensions。includes(fileExtension)) {
         return false;
     }
     
