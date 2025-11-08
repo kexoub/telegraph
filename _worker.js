@@ -57,7 +57,9 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
         return cachedResponse;
     }
     
-    const response = new Response(`<!DOCTYPE html>
+    // 修复：使用转义的HTML字符串
+    const htmlContent = `
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -66,10 +68,10 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
     <meta name="keywords" content="Telegraph图床,Workers图床, Cloudflare, Workers,telegra.ph, 图床">
     <title>Telegraph图床-基于Workers的图床服务</title>
     <link rel="icon" href="https://p1.meituan.net/csc/c195ee91001e783f39f41ffffbbcbd484286.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css" integrity="sha512-T584yQ/tdRR5QwOpfvDfVQUidzfgc2339Lc8uBDtcp/wYu80d7jwBgAxbyMh0a9YM9F8N3tdErpFI8iaGx6x5g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/css/fileinput.min.css" integrity="sha512-qPjB0hQKYTx1Za9Xip5h0PXcxaR1cRbHuZHo9z+gb5IgM6ZOTtIH4QLITCxcCp/8RMXtw2Z85MIZLv6LfGTLiw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha512-6S2HWzVFxruDlZxI3sXOZZ4/eJ8AcxkQH1+JjSe/ONCEqR9L4Ysq5JdT5ipqtzU7WHalNwzwBv+iE51gNHJNqQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/css/fileinput.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         :root {
             --primary-color: #4361ee;
@@ -231,46 +233,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
             margin-bottom: 20px;
         }
         
-        .kv-upload-progress {
-            display: none !important;
-        }
-        
-        .file-caption {
-            color: white !important;
-        }
-        
-        .file-drop-zone {
-            border: 2px dashed rgba(255, 255, 255, 0.4) !important;
-            border-radius: 10px !important;
-            background: rgba(255, 255, 255, 0.05) !important;
-        }
-        
-        .file-drop-zone-title {
-            color: rgba(255, 255, 255, 0.8) !important;
-            padding: 30px 10px !important;
-        }
-        
-        .btn-file {
-            background: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 50px !important;
-            padding: 10px 25px !important;
-            backdrop-filter: blur(5px);
-            transition: var(--transition) !important;
-        }
-        
-        .btn-file:hover {
-            background: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-2px);
-        }
-        
-        .file-preview {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: none !important;
-            border-radius: 10px !important;
-        }
-        
         .results-panel {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 15px;
@@ -331,10 +293,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.3);
-        }
-        
-        .result-textarea::placeholder {
-            color: rgba(255, 255, 255, 0.5);
         }
         
         .history-panel {
@@ -526,7 +484,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
             }
         }
         
-        /* 自定义Toastr样式 */
         .toast-success {
             background: rgba(76, 201, 240, 0.9) !important;
             backdrop-filter: blur(10px);
@@ -621,23 +578,18 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/fileinput.min.js" integrity="sha512-CCLv901EuJXf3k0OrE5qix8s2HaCDpjeBERR2wVHUwzEIc7jfiK9wqJFssyMOc1lJ/KvYKsDenzxbDTAQ4nh1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/locales/zh.min.js" integrity="sha512-IizKWmZY3aznnbFx/Gj8ybkRyKk7wm+d7MKmEgOMRQDN1D1wmnDRupfXn6X04pwIyKFWsmFVgrcl0j6W3Z5FDQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/fileinput.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/locales/zh.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
     
     <script>
-        // 配置Toastr
         toastr.options = {
             closeButton: true,
             progressBar: true,
             positionClass: "toast-top-right",
             timeOut: 3000,
-            extendedTimeOut: 1000,
-            showEasing: "swing",
-            hideEasing: "linear",
-            showMethod: "fadeIn",
-            hideMethod: "fadeOut"
+            extendedTimeOut: 1000
         };
         
         async function fetchBingImages() {
@@ -682,19 +634,12 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
             let enableCompression = true;
             let currentFormat = 'url';
             
-            // 初始化统计信息
             updateStats();
-            
-            // 初始化文件输入
             initFileInput();
-            
-            // 设置背景图片
             setBackgroundImages();
             
-            // 设置控制按钮提示
             $('#compressionToggleBtn').attr('title', enableCompression ? '关闭压缩' : '开启压缩');
             
-            // 压缩切换按钮事件
             $('#compressionToggleBtn').on('click', function() {
                 enableCompression = !enableCompression;
                 const icon = $(this).find('i');
@@ -710,12 +655,10 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 }
             });
             
-            // 信息按钮事件
             $('#infoBtn').on('click', function() {
                 toastr.info('支持拖放上传，可同时上传多个文件。开启压缩可减小图片体积。', '使用说明', {timeOut: 5000});
             });
             
-            // 清空历史按钮事件
             $('#clearHistoryBtn').on('click', function() {
                 if (confirm('确定要清空所有上传历史吗？此操作不可恢复。')) {
                     localStorage.removeItem('uploadCache');
@@ -726,7 +669,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 }
             });
             
-            // 格式化按钮事件
             $('.format-btn').on('click', function() {
                 $('.format-btn').removeClass('active');
                 $(this).addClass('active');
@@ -783,7 +725,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                     const fileHash = await calculateFileHash(file);
                     const cachedData = getCachedData(fileHash);
                     
-                    // 更新进度条
                     $('#progressBar').css('width', ((i + 1) / files.length * 100) + '%');
                     
                     if (cachedData) {
@@ -793,7 +734,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                     }
                 }
                 
-                // 上传完成后隐藏进度条
                 setTimeout(() => {
                     $('#progressContainer').hide();
                     $('#progressBar').css('width', '0%');
@@ -836,8 +776,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 
                 $('#fileLink').val(formattedLinks);
                 adjustTextareaHeight($('#fileLink')[0]);
-                
-                // 自动复制到剪贴板
                 copyToClipboardWithToastr(formattedLinks);
             }
 
@@ -852,7 +790,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 try {
                     toastr.info('正在上传: ' + file.name, '上传中', {timeOut: 0});
                     
-                    // 压缩图片（如果启用）
                     if (file.type.startsWith('image/') && file.type !== 'image/gif' && enableCompression) {
                         toastr.info('正在压缩: ' + file.name, '压缩中', {timeOut: 0});
                         file = await compressImage(file);
@@ -893,7 +830,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 }
             }
 
-            // 拖放区域事件
             const uploadArea = document.getElementById('uploadArea');
             
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -942,7 +878,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 $('#fileInput').trigger('change');
             }
 
-            // 粘贴事件
             $(document).on('paste', async function(event) {
                 const clipboardData = event.originalEvent.clipboardData;
                 if (clipboardData && clipboardData.items) {
@@ -1043,27 +978,22 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 } else {
                     if (cacheData.length > 0) {
                         cacheData.reverse().forEach((item, index) => {
-                            if (index < 20) { // 只显示最近20条记录
-                                const listItem = $(`
-                                    <div class="history-item">
-                                        <div class="history-info">
-                                            <div class="history-name">${item.fileName}</div>
-                                            <div class="history-time">${item.timestamp}</div>
-                                        </div>
-                                        <div class="history-actions">
-                                            <button class="history-action view-btn" title="查看">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="history-action copy-btn" title="复制链接">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                `);
-                                
-                                listItem.find('.view-btn').data('url', item.url);
-                                listItem.find('.copy-btn').data('url', item.url);
-                                
+                            if (index < 20) {
+                                const listItem = $('<div class="history-item"></div>');
+                                listItem.html(
+                                    '<div class="history-info">' +
+                                        '<div class="history-name">' + item.fileName + '</div>' +
+                                        '<div class="history-time">' + item.timestamp + '</div>' +
+                                    '</div>' +
+                                    '<div class="history-actions">' +
+                                        '<button class="history-action view-btn" title="查看" data-url="' + item.url + '">' +
+                                            '<i class="fas fa-eye"></i>' +
+                                        '</button>' +
+                                        '<button class="history-action copy-btn" title="复制链接" data-url="' + item.url + '">' +
+                                            '<i class="fas fa-copy"></i>' +
+                                        '</button>' +
+                                    '</div>'
+                                );
                                 cacheContent.append(listItem);
                             }
                         });
@@ -1075,7 +1005,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 }
             });
 
-            // 历史记录操作事件
             $(document).on('click', '.history-item .view-btn', function() {
                 const url = $(this).data('url');
                 window.open(url, '_blank');
@@ -1099,7 +1028,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 updateFileLinkDisplay();
             });
             
-            // 更新统计信息
             function updateStats() {
                 const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
                 const today = new Date().toLocaleDateString('zh-CN');
@@ -1110,15 +1038,15 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 
                 $('#totalUploads').text(cacheData.length);
                 $('#todayUploads').text(todayItems.length);
-                
-                // 计算总大小（模拟）
                 const totalSizeMB = (cacheData.length * 0.5).toFixed(1);
                 $('#totalSize').text(totalSizeMB + 'MB');
             }
         });
     </script>
 </body>
-</html>`, {
+</html>`;
+
+    const response = new Response(htmlContent, {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' }
     });
     
@@ -1126,10 +1054,12 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
     return response;
 }
 
+// 其他函数保持不变（handleAdminRequest, isValidCredentials, generateAdminPage, fetchMediaData, handleUploadRequest, handleImageRequest, handleBingImagesRequest, handleDeleteImagesRequest, handleRandomRequest, fetchImageMediaData, isImageFile）
+
 async function handleAdminRequest(DATABASE, request, USERNAME, PASSWORD) {
-    if (!authenticate(request， USERNAME, PASSWORD)) {
-        return new Response('Unauthorized'， {
-            status: 401，
+    if (!authenticate(request, USERNAME, PASSWORD)) {
+        return new Response('Unauthorized', {
+            status: 401,
             headers: { 'WWW-Authenticate': 'Basic realm="Admin"' }
         });
     }
@@ -1151,12 +1081,11 @@ async function generateAdminPage(DATABASE) {
         const fileExtension = url.split('.').pop().toLowerCase();
         const timestamp = url.split('/').pop().split('.')[0];
         const mediaType = fileExtension;
-        let displayUrl = url;
         
         const supportedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'];
         const supportedVideoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm'];
         const isSupported = [...supportedImageExtensions, ...supportedVideoExtensions].includes(fileExtension);
-        const backgroundStyle = isSupported ? '' : `style="font-size: 50px; display: flex; justify-content: center; align-items: center;"`;
+        const backgroundStyle = isSupported ? '' : 'style="font-size: 50px; display: flex; justify-content: center; align-items: center;"';
         const icon = isSupported ? '' : '📁';
         
         return `
@@ -1164,19 +1093,18 @@ async function generateAdminPage(DATABASE) {
                 <div class="media-type">${mediaType}</div>
                 ${supportedVideoExtensions.includes(fileExtension) ? `
                     <video class="gallery-video" preload="none" style="width: 100%; height: 100%; object-fit: contain;" controls>
-                        <source data-src="${displayUrl}" type="video/${fileExtension}">
+                        <source data-src="${url}" type="video/${fileExtension}">
                         您的浏览器不支持视频标签。
                     </video>
                 ` : `
-                    ${isSupported ? `<img class="gallery-image lazy" data-src="${displayUrl}" alt="Image">` : icon}
+                    ${isSupported ? `<img class="gallery-image lazy" data-src="${url}" alt="Image">` : icon}
                 `}
                 <div class="upload-time">上传时间: ${new Date(parseInt(timestamp)).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
             </div>
         `;
     }).join('');
     
-    const html = `
-<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html>
 <head>
     <title>图库管理</title>
@@ -1656,7 +1584,7 @@ async function handleImageRequest(request, DATABASE, TG_BOT_TOKEN) {
     const result = await DATABASE.prepare('SELECT fileId FROM media WHERE url = ?').bind(requestedUrl).first();
     if (!result) {
         const notFoundResponse = new Response('资源不存在', { status: 404 });
-        await cache。put(cacheKey, notFoundResponse.clone());
+        await cache.put(cacheKey, notFoundResponse.clone());
         return notFoundResponse;
     }
     
@@ -1673,15 +1601,15 @@ async function handleImageRequest(request, DATABASE, TG_BOT_TOKEN) {
         
         const fileData = await getFilePath.json();
         if (fileData.ok && fileData.result.file_path) {
-            filePath = fileData。result.file_path;
+            filePath = fileData.result.file_path;
             break;
         }
         attempts++;
     }
     
     if (!filePath) {
-        const notFoundResponse = new Response('未找到FilePath'， { status: 404 });
-        await cache。put(cacheKey， notFoundResponse.clone());
+        const notFoundResponse = new Response('未找到FilePath', { status: 404 });
+        await cache.put(cacheKey, notFoundResponse.clone());
         return notFoundResponse;
     }
     
@@ -1788,10 +1716,8 @@ async function handleDeleteImagesRequest(request, DATABASE, USERNAME, PASSWORD) 
     }
 }
 
-// 随机图片API处理函数
 async function handleRandomRequest(request, DATABASE) {
     try {
-        // 获取所有图片媒体数据
         const imageMedia = await fetchImageMediaData(DATABASE);
         
         if (imageMedia.length === 0) {
@@ -1803,26 +1729,22 @@ async function handleRandomRequest(request, DATABASE) {
             });
         }
         
-        // 随机选择一张图片
         const randomIndex = Math.floor(Math.random() * imageMedia.length);
         const randomImage = imageMedia[randomIndex];
         
-        // 返回图片信息或重定向到图片URL
         const acceptHeader = request.headers.get('accept') || '';
         
         if (acceptHeader.includes('application/json')) {
-            // 如果客户端请求JSON，返回图片信息
-            return new Response(JSON。stringify({
-                url: randomImage。url,
-                fileId: randomImage。fileId，
-                输入: 'image'
+            return new Response(JSON.stringify({
+                url: randomImage.url,
+                fileId: randomImage.fileId,
+                type: 'image'
             }), {
                 headers: { 'Content-Type': 'application/json' }
             });
         } else {
-            // 否则重定向到图片URL
-            return new Response(null， {
-                status: 302，
+            return new Response(null, {
+                status: 302,
                 headers: {
                     'Location': randomImage.url,
                     'Cache-Control': 'no-cache'
@@ -1831,58 +1753,52 @@ async function handleRandomRequest(request, DATABASE) {
         }
         
     } catch (error) {
-        console。error('随机图片API错误:'， error);
+        console.error('随机图片API错误:', error);
         return new Response(JSON.stringify({ 
             error: '获取随机图片失败' 
-        })， { 
+        }), { 
             status: 500, 
             headers: { 'Content-Type': 'application/json' } 
         });
     }
 }
 
-// 获取图片媒体数据（只返回图片文件）
 async function fetchImageMediaData(DATABASE) {
-    const result = await DATABASE.prepare('SELECT url, fileId FROM media')。全部();
+    const result = await DATABASE.prepare('SELECT url, fileId FROM media').all();
     const mediaData = result.results.map(row => ({
-        fileId: row。fileId,
-        url: row。url，
-        timestamp: parseInt(row。url.split('/').pop().split('.')[0])
+        fileId: row.fileId,
+        url: row.url,
+        timestamp: parseInt(row.url.split('/').pop().split('.')[0])
     }));
     
-    // 过滤出图片文件（基于文件扩展名）
     const imageExtensions = [
         'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'
     ];
     
     const imageMedia = mediaData.filter(media => {
-        const fileExtension = media。url.split('.')。pop()。toLowerCase();
+        const fileExtension = media.url.split('.').pop().toLowerCase();
         return imageExtensions.includes(fileExtension);
     });
     
     return imageMedia;
 }
 
-// 增强的文件类型检测函数
 function isImageFile(url) {
     const imageExtensions = [
         'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'
     ];
     
-    const fileExtension = url.split('.').pop()。toLowerCase();
+    const fileExtension = url.split('.').pop().toLowerCase();
     
-    // 基础扩展名检查
-    if (!imageExtensions。includes(fileExtension)) {
+    if (!imageExtensions.includes(fileExtension)) {
         return false;
     }
     
-    // 额外的安全检查：确保URL格式正确
     try {
         const urlObj = new URL(url);
         const pathname = urlObj.pathname;
         const filename = pathname.split('/').pop();
         
-        // 检查文件名是否包含时间戳格式（基于您当前的命名规则）
         const timestampPart = filename.split('.')[0];
         if (!/^\d+$/.test(timestampPart)) {
             return false;
