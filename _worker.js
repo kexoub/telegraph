@@ -767,7 +767,7 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                         formattedLinks = originalImageURLs.map(url => '[img]' + url + '[/img]').join('\\n\\n');
                         break;
                     case 'markdown':
-                        formattedLinks = originalImageURLs.map(url => '![](' + url + ')').join('\\n\\n');
+                        formattedLinks = originalImageURLs.map(url => '![](' + url + ')').join('\n\n');
                         break;
                     case 'html':
                         formattedLinks = originalImageURLs.map(url => '<img src="' + url + '" alt="Image">').join('\\n\\n');
