@@ -1,36 +1,36 @@
 export default {
-  async fetch(request, env) {
-    const { pathname } = new URL(request.url);
-    const domain = env.DOMAIN;
-    const DATABASE = env.DATABASE;
-    const USERNAME = env.USERNAME;
-    const PASSWORD = env.PASSWORD;
-    const adminPath = env.ADMIN_PATH;
-    const enableAuth = env.ENABLE_AUTH === 'true';
-    const TG_BOT_TOKEN = env.TG_BOT_TOKEN;
-    const TG_CHAT_ID = env.TG_CHAT_ID;
-    const maxSizeMB = env.MAX_SIZE_MB ? parseInt(env.MAX_SIZE_MB, 10) : 20;
-    const maxSize = maxSizeMB * 1024 * 1024;
+    async fetch(request, env) {
+        const { pathname } = new URL(request.url);
+        const domain = env.DOMAIN;
+        const DATABASE = env.DATABASE;
+        const USERNAME = env.USERNAME;
+        const PASSWORD = env.PASSWORD;
+        const adminPath = env.ADMIN_PATH;
+        const enableAuth = env.ENABLE_AUTH === 'true';
+        const TG_BOT_TOKEN = env.TG_BOT_TOKEN;
+        const TG_CHAT_ID = env.TG_CHAT_ID;
+        const maxSizeMB = env.MAX_SIZE_MB ? parseInt(env.MAX_SIZE_MB, 10) : 20;
+        const maxSize = maxSizeMB * 1024 * 1024;
 
-    switch (pathname) {
-      case '/':
-        return await handleRootRequest(request, USERNAME, PASSWORD, enableAuth);
-      case `/${adminPath}`:
-        return await handleAdminRequest(DATABASE, request, USERNAME, PASSWORD);
-      case '/upload':
-        return request.method === 'POST' 
-          ? await handleUploadRequest(request, DATABASE, enableAuth, USERNAME, PASSWORD, domain, TG_BOT_TOKEN, TG_CHAT_ID, maxSize)
-          : new Response('Method Not Allowed', { status: 405 });
-      case '/bing-images':
-        return handleBingImagesRequest();
-      case '/delete-images':
-        return await handleDeleteImagesRequest(request, DATABASE, USERNAME, PASSWORD);
-      case '/random':
-        return await handleRandomRequest(request, DATABASE);
-      default:
-        return await handleImageRequest(request, DATABASE, TG_BOT_TOKEN);
+        switch (pathname) {
+            case '/':
+                return await handleRootRequest(request, USERNAME, PASSWORD, enableAuth);
+            case `/${adminPath}`:
+                return await handleAdminRequest(DATABASE, request, USERNAME, PASSWORD);
+            case '/upload':
+                return request.method === 'POST' 
+                    ? await handleUploadRequest(request, DATABASE, enableAuth, USERNAME, PASSWORD, domain, TG_BOT_TOKEN, TG_CHAT_ID, maxSize)
+                    : new Response('Method Not Allowed', { status: 405 });
+            case '/bing-images':
+                return handleBingImagesRequest();
+            case '/delete-images':
+                return await handleDeleteImagesRequest(request, DATABASE, USERNAME, PASSWORD);
+            case '/random':
+                return await handleRandomRequest(request, DATABASE); // 新增随机图片路由
+            default:
+                return await handleImageRequest(request, DATABASE, TG_BOT_TOKEN);
+        }
     }
-  }
 };
 
 function authenticate(request, USERNAME, PASSWORD) {
