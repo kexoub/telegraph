@@ -40,24 +40,24 @@ function authenticate(request, USERNAME, PASSWORD) {
 }
 
 async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
-  const cache = caches.default;
-  const cacheKey = new Request(request.url);
-  
-  if (enableAuth) {
-    if (!authenticate(request, USERNAME, PASSWORD)) {
-      return new Response('Unauthorized', {
-        status: 401,
-        headers: { 'WWW-Authenticate': 'Basic realm="Admin"' }
-      });
+    const cache = caches.default;
+    const cacheKey = new Request(request.url);
+    
+    if (enableAuth) {
+        if (!authenticate(request, USERNAME, PASSWORD)) {
+            return new Response('Unauthorized', {
+                status: 401,
+                headers: { 'WWW-Authenticate': 'Basic realm="Admin"' }
+            });
+        }
     }
-  }
-
-  const cachedResponse = await cache.match(cacheKey);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
-  const response = new Response(`<!DOCTYPE html>
+    
+    const cachedResponse = await cache.match(cacheKey);
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+    
+    const response = new Response(`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -66,857 +66,133 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
     <meta name="keywords" content="Telegraph图床,Workers图床, Cloudflare, Workers,telegra.ph, 图床">
     <title>Telegraph图床-基于Workers的图床服务</title>
     <link rel="icon" href="https://p1.meituan.net/csc/c195ee91001e783f39f41ffffbbcbd484286.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/css/fileinput.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css" integrity="sha512-T584yQ/tdRR5QwOpfvDfVQUidzfgc2339Lc8uBDtcp/wYu80d7jwBgAxbyMh0a9YM9F8N3tdErpFI8iaGx6x5g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/css/fileinput.min.css" integrity="sha512-qPjB0hQKYTx1Za9Xip5h0PXcxaR1cRbHuZHo9z+gb5IgM6ZOTtIH4QLITCxcCp/8RMXtw2Z85MIZLv6LfGTLiw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha512-6S2HWzVFxruDlZxI3sXOZZ4/eJ8AcxkQH1+JjSe/ONCEqR9L4Ysq5JdT5ipqtzU7WHalNwzwBv+iE51gNHJNqQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        :root {
-            --primary-color: #6366f1;
-            --primary-hover: #4f46e5;
-            --secondary-color: #f8fafc;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 20px 45px -5px rgba(0, 0, 0, 0.15), 0 15px 15px -10px rgba(0, 0, 0, 0.1);
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow-x: hidden;
-            color: var(--text-primary);
-        }
-
-        .background-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            z-index: -2;
-        }
-
-        .background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            z-index: -3;
-            transition: opacity 1.5s ease-in-out;
-            opacity: 0.3;
-            filter: blur(1px);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            padding: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            padding: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-5px);
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .logo {
-            width: 60px;
-            height: 60px;
-            background: var(--gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            color: white;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .title {
-            font-size: 28px;
-            font-weight: 700;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 400;
-        }
-
-        .toolbar {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .toolbar-btn {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .toolbar-btn:hover {
-            background: white;
-            color: var(--primary-color);
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .file-input-container {
-            margin-bottom: 20px;
-        }
-
-        .file-input-wrapper {
-            border: 2px dashed var(--border-color);
-            border-radius: 16px;
-            padding: 30px 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            background: rgba(248, 250, 252, 0.5);
-            cursor: pointer;
-        }
-
-        .file-input-wrapper:hover {
-            border-color: var(--primary-color);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .file-input-wrapper.dragover {
-            border-color: var(--primary-color);
-            background: rgba(99, 102, 241, 0.1);
-            transform: scale(1.02);
-        }
-
-        .upload-icon {
-            font-size: 48px;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-        }
-
-        .upload-text {
-            font-size: 16px;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .upload-hint {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .result-section {
-            margin-top: 25px;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        .format-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .format-btn {
-            flex: 1;
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 10px 15px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .format-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            transform: translateY(-2px);
-        }
-
-        .format-btn.active {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-            color: white;
-        }
-
-        .result-textarea {
-            width: 100%;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px;
-            font-size: 14px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            resize: none;
-            background: white;
-            transition: all 0.3s ease;
-            max-height: 200px;
-        }
-
-        .result-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .cache-section {
-            margin-top: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            border-radius: 12px;
-            background: white;
-            border: 1px solid var(--border-color);
-            display: none;
-        }
-
-        .cache-header {
-            padding: 15px;
-            background: var(--secondary-color);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--text-primary);
-            border-radius: 12px 12px 0 0;
-        }
-
-        .cache-list {
-            padding: 10px;
-        }
-
-        .cache-item {
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: white;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .cache-item:hover {
-            border-color: var(--primary-color);
-            background: rgba(99, 102, 241, 0.05);
-            transform: translateX(5px);
-        }
-
-        .cache-info {
-            flex: 1;
-        }
-
-        .cache-name {
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .cache-time {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-
-        .cache-url {
-            font-size: 10px;
-            color: var(--text-secondary);
-            word-break: break-all;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .project-link {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .project-link a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .project-link a:hover {
-            text-decoration: underline;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(248, 250, 252, 0.8);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary-color);
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-                max-width: 100%;
-            }
-            
-            .card {
-                padding: 20px;
-                border-radius: 16px;
-            }
-            
-            .title {
-                font-size: 24px;
-            }
-            
-            .toolbar {
-                top: 15px;
-                right: 15px;
-            }
-            
-            .format-buttons {
-                flex-direction: column;
-            }
-        }
-
-        /* 文件输入自定义样式 */
-        .file-caption-icon {
-            display: none !important;
-        }
-
-        .file-input .btn-file {
-            display: none;
-        }
-
-        .kv-upload-progress {
-            display: none !important;
-        }
-
-        .file-preview {
-            border: none !important;
-            padding: 0 !important;
-        }
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; position: relative; }
+        .background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; z-index: -1; transition: opacity 1s ease-in-out; opacity: 1; }
+        .card { background-color: rgba(255, 255, 255, 0.8); border: none; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); padding: 20px; width: 90%; max-width: 400px; text-align: center; margin: 0 auto; position: relative; }
+        .uniform-height { margin-top: 20px; }
+        #viewCacheBtn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: rgba(0, 0, 0, 0.1); cursor: pointer; font-size: 24px; transition: color 0.3s ease; }
+        #viewCacheBtn:hover { color: rgba(0, 0, 0, 0.4); }
+        #compressionToggleBtn { position: absolute; top: 10px; right: 50px; background: none; border: none; color: rgba(0, 0, 0, 0.1); cursor: pointer; font-size: 24px; transition: color 0.3s ease; }
+        #compressionToggleBtn:hover { color: rgba(0, 0, 0, 0.4); }
+        #cacheContent { margin-top: 20px; max-height: 200px; border-radius: 5px; overflow-y: auto; }
+        .cache-title { text-align: left; margin-bottom: 10px; }
+        .cache-item { display: block; cursor: pointer; border-radius: 4px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease; text-align: left; padding: 10px; }
+        .cache-item:hover { background-color: #e9ecef; }
+        .project-link { font-size: 14px; text-align: center; margin-top: 5px; margin-bottom: 0; }
+        textarea.form-control { max-height: 200px; overflow-y: hidden; resize: none; }
     </style>
 </head>
 <body>
-    <div class="background-overlay"></div>
     <div class="background" id="background"></div>
-    
-    <div class="container">
-        <div class="card">
-            <div class="toolbar">
-                <button class="toolbar-btn" id="viewCacheBtn" title="查看历史记录">
-                    <i class="fas fa-history"></i>
-                </button>
-                <button class="toolbar-btn" id="compressionToggleBtn" title="开启压缩">
-                    <i class="fas fa-compress-arrows-alt"></i>
-                </button>
-            </div>
-
-            <div class="header">
-                <div class="logo">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                </div>
-                <h1 class="title">Telegraph 图床</h1>
-                <p class="subtitle">安全、快速、免费的图片托管服务</p>
-            </div>
-
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-value" id="uploadCount">0</span>
-                    <span class="stat-label">今日上传</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="totalCount">0</span>
-                    <span class="stat-label">总文件数</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="maxSize">20</span>
-                    <span class="stat-label">最大MB</span>
-                </div>
-            </div>
-
+    <div class="card">
+        <div class="title">Telegraph图床</div>
+        <button type="button" class="btn" id="viewCacheBtn" title="查看历史记录"><i class="fas fa-clock"></i></button>
+        <button type="button" class="btn" id="compressionToggleBtn"><i class="fas fa-compress"></i></button>
+        <div class="card-body">
             <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
                 <div class="file-input-container">
-                    <div class="file-input-wrapper" id="dropZone">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt pulse"></i>
-                        </div>
-                        <div class="upload-text">点击或拖拽文件到此处</div>
-                        <div class="upload-hint">支持 JPG、PNG、GIF 等格式，最大 20MB</div>
-                        <input id="fileInput" name="file" type="file" class="file-input" multiple 
-                               accept="image/*,video/*,.gif" style="display: none;">
-                    </div>
+                    <input id="fileInput" name="file" type="file" class="form-control-file" data-browse-on-zone-click="true" multiple>
                 </div>
-
-                <div class="result-section" id="resultSection" style="display: none;">
-                    <div class="format-buttons">
-                        <button type="button" class="format-btn active" data-format="url">URL 链接</button>
-                        <button type="button" class="format-btn" data-format="bbcode">BBCode</button>
-                        <button type="button" class="format-btn" data-format="markdown">Markdown</button>
-                    </div>
-                    <textarea class="result-textarea" id="fileLink" readonly 
-                              placeholder="上传文件后，链接将显示在这里..."></textarea>
+                <div class="form-group mb-3 uniform-height" style="display: none;">
+                    <button type="button" class="btn btn-light mr-2" id="urlBtn">URL</button>
+                    <button type="button" class="btn btn-light mr-2" id="bbcodeBtn">BBCode</button>
+                    <button type="button" class="btn btn-light" id="markdownBtn">Markdown</button>
                 </div>
+                <div class="form-group mb-3 uniform-height" style="display: none;">
+                    <textarea class="form-control" id="fileLink" readonly></textarea>
+                </div>
+                <div id="cacheContent" style="display: none;"></div>
             </form>
-
-            <div class="cache-section" id="cacheSection">
-                <div class="cache-header">
-                    <i class="fas fa-clock mr-2"></i>上传历史
-                    <button class="float-right btn btn-sm btn-outline-secondary" id="clearCacheBtn" style="border: none; padding: 2px 8px;">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                <div class="cache-list" id="cacheList"></div>
-            </div>
-
-            <div class="footer">
-                <p class="project-link">
-                    项目开源于 <a href="https://github.com/0-RTT/telegraph" target="_blank">GitHub</a> 
-                    - 基于 Cloudflare Workers
-                </p>
-            </div>
         </div>
+        <p class="project-link">项目开源于 GitHub - <a href="https://github.com/0-RTT/telegraph" target="_blank" rel="noopener noreferrer">0-RTT/telegraph</a></p>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/fileinput.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/locales/zh.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/fileinput.min.js" integrity="sha512-CCLv901EuJXf3k0OrE5qix8s2HaCDpjeBERR2wVHUwzEIc7jfiK9wqJFssyMOc1lJ/KvYKsDenzxbDTAQ4nh1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/locales/zh.min.js" integrity="sha512-IizKWmZY3aznnbFx/Gj8ybkRyKk7wm+d7MKmEgOMRQDN1D1wmnDRupfXn6X04pwIyKFWsmFVgrcl0j6W3Z5FDQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <script>
-        // 配置 toastr
-        toastr.options = {
-            closeButton: true,
-            progressBar: true,
-            positionClass: "toast-top-right",
-            timeOut: 3000
-        };
+        async function fetchBingImages() {
+            const response = await fetch('/bing-images');
+            const data = await response.json();
+            return data.data.map(image => image.url);
+        }
+
+        async function setBackgroundImages() {
+            const images = await fetchBingImages();
+            const backgroundDiv = document.getElementById('background');
+            if (images.length > 0) {
+                backgroundDiv.style.backgroundImage = 'url(' + images[0] + ')';
+            }
+            let index = 0;
+            let currentBackgroundDiv = backgroundDiv;
+            setInterval(() => {
+                const nextIndex = (index + 1) % images.length;
+                const nextBackgroundDiv = document.createElement('div');
+                nextBackgroundDiv.className = 'background next';
+                nextBackgroundDiv.style.backgroundImage = 'url(' + images[nextIndex] + ')';
+                document.body.appendChild(nextBackgroundDiv);
+                nextBackgroundDiv.style.opacity = 0;
+                setTimeout(() => {
+                    nextBackgroundDiv.style.opacity = 1;
+                }, 50);
+                setTimeout(() => {
+                    document.body.removeChild(currentBackgroundDiv);
+                    currentBackgroundDiv = nextBackgroundDiv;
+                    index = nextIndex;
+                }, 1000);
+            }, 5000);
+        }
 
         $(document).ready(function() {
             let originalImageURLs = [];
             let isCacheVisible = false;
             let enableCompression = true;
-            let currentFormat = 'url';
 
-            // 初始化
             initFileInput();
             setBackgroundImages();
-            updateStats();
-            bindEvents();
 
-            function bindEvents() {
-                // 文件选择区域点击事件
-                $('#dropZone').on('click', function() {
-                    $('#fileInput').click();
-                });
+            const tooltipText = enableCompression ? '关闭压缩' : '开启压缩';
+            $('#compressionToggleBtn').attr('title', tooltipText);
 
-                // 拖拽事件
-                $('#dropZone').on('dragover', function(e) {
-                    e.preventDefault();
-                    $(this).addClass('dragover');
-                });
-
-                $('#dropZone').on('dragleave', function(e) {
-                    e.preventDefault();
-                    $(this).removeClass('dragover');
-                });
-
-                $('#dropZone').on('drop', function(e) {
-                    e.preventDefault();
-                    $(this).removeClass('dragover');
-                    const files = e.originalEvent.dataTransfer.files;
-                    if (files.length > 0) {
-                        $('#fileInput')[0].files = files;
-                        handleFileSelection();
-                    }
-                });
-
-                // 格式按钮事件
-                $('.format-btn').on('click', function() {
-                    $('.format-btn').removeClass('active');
-                    $(this).addClass('active');
-                    currentFormat = $(this).data('format');
-                    updateLinkFormat();
-                });
-
-                // 压缩切换按钮
-                $('#compressionToggleBtn').on('click', function() {
-                    enableCompression = !enableCompression;
-                    const icon = $(this).find('i');
-                    const title = enableCompression ? '关闭压缩' : '开启压缩';
-                    
-                    icon.toggleClass('fa-compress-arrows-alt fa-expand-arrows-alt');
-                    $(this).attr('title', title);
-                    
-                    toastr.info(enableCompression ? '已开启图片压缩' : '已关闭图片压缩');
-                });
-
-                // 历史记录按钮
-                $('#viewCacheBtn').on('click', function() {
-                    toggleCacheView();
-                });
-
-                // 清空缓存按钮
-                $('#clearCacheBtn').on('click', function(e) {
-                    e.stopPropagation();
-                    if (confirm('确定要清空所有历史记录吗？')) {
-                        localStorage.removeItem('uploadCache');
-                        $('#cacheList').empty();
-                        toastr.success('历史记录已清空');
-                    }
-                });
-
-                // 粘贴事件
-                $(document).on('paste', handlePaste);
-            }
+            $('#compressionToggleBtn').on('click', function() {
+                enableCompression = !enableCompression;
+                const icon = $(this).find('i');
+                icon.toggleClass('fa-compress fa-expand');
+                const tooltipText = enableCompression ? '关闭压缩' : '开启压缩';
+                $(this).attr('title', tooltipText);
+            });
 
             function initFileInput() {
-                // 隐藏默认的文件输入，使用自定义样式
                 $("#fileInput").fileinput({
                     theme: 'fa',
                     language: 'zh',
+                    browseClass: "btn btn-primary",
+                    removeClass: "btn btn-danger",
                     showUpload: false,
-                    showRemove: false,
                     showPreview: false,
-                    showCaption: false,
-                    browseOnZoneClick: false,
-                    dropZoneEnabled: false
-                }).on('filebatchselected', handleFileSelection);
+                }).on('filebatchselected', handleFileSelection)
+                  .on('fileclear', handleFileClear);
             }
 
             async function handleFileSelection() {
                 const files = $('#fileInput')[0].files;
-                if (files.length === 0) return;
-
-                $('#dropZone').addClass('uploading');
-                $('#dropZone .upload-icon i').removeClass('fa-cloud-upload-alt').addClass('fa-spinner fa-spin');
-                $('#dropZone .upload-text').text('处理中...');
-
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    await processFile(file);
-                }
-
-                $('#dropZone').removeClass('uploading');
-                $('#dropZone .upload-icon i').removeClass('fa-spinner fa-spin').addClass('fa-cloud-upload-alt');
-                $('#dropZone .upload-text').text('点击或拖拽文件到此处');
-            }
-
-            async function processFile(file) {
-                try {
                     const fileHash = await calculateFileHash(file);
                     const cachedData = getCachedData(fileHash);
-                    
                     if (cachedData) {
                         handleCachedFile(cachedData);
-                        return;
+                    } else {
+                        await uploadFile(file, fileHash);
                     }
-
-                    await uploadFile(file, fileHash);
-                } catch (error) {
-                    console.error('文件处理错误:', error);
-                    toastr.error('文件处理失败: ' + error.message);
                 }
-            }
-
-            async function uploadFile(file, fileHash) {
-                toastr.info('上传中...', '', { timeOut: 0 });
-
-                try {
-                    let finalFile = file;
-                    
-                    // 图片压缩（GIF 不压缩）
-                    if (file.type.startsWith('image/') && file.type !== 'image/gif' && enableCompression) {
-                        toastr.info('正在压缩图片...', '', { timeOut: 0 });
-                        finalFile = await compressImage(file);
-                    }
-
-                    const formData = new FormData();
-                    formData.append('file', finalFile);
-
-                    const response = await fetch('/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const result = await response.json();
-
-                    if (result.error) {
-                        throw new Error(result.error);
-                    }
-
-                    originalImageURLs.push(result.data);
-                    updateResultDisplay();
-                    saveToCache(result.data, file.name, fileHash);
-                    
-                    toastr.success('上传成功！');
-                    updateStats();
-
-                } catch (error) {
-                    toastr.error('上传失败: ' + error.message);
-                } finally {
-                    toastr.clear();
-                }
-            }
-
-            function updateResultDisplay() {
-                $('#resultSection').show();
-                updateLinkFormat();
-                
-                // 自动复制到剪贴板
-                const text = $('#fileLink').val();
-                copyToClipboard(text);
-                toastr.success('链接已复制到剪贴板');
-            }
-
-            function updateLinkFormat() {
-                if (originalImageURLs.length === 0) return;
-
-                let formattedText = '';
-                const links = originalImageURLs.map(url => url.trim()).filter(url => url);
-
-                switch (currentFormat) {
-                    case 'url':
-                        formattedText = links.join('\n\n');
-                        break;
-                    case 'bbcode':
-                        formattedText = links.map(url => `[img]${url}[/img]`).join('\n\n');
-                        break;
-                    case 'markdown':
-                        formattedText = links.map(url => `![image](${url})`).join('\n\n');
-                        break;
-                }
-
-                $('#fileLink').val(formattedText);
-                adjustTextareaHeight();
-            }
-
-            function toggleCacheView() {
-                const cacheSection = $('#cacheSection');
-                const cacheList = $('#cacheList');
-                
-                if (isCacheVisible) {
-                    cacheSection.slideUp();
-                    isCacheVisible = false;
-                } else {
-                    loadCacheData();
-                    cacheSection.slideDown();
-                    isCacheVisible = true;
-                }
-            }
-
-            function loadCacheData() {
-                const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
-                const cacheList = $('#cacheList');
-                
-                cacheList.empty();
-
-                if (cacheData.length === 0) {
-                    cacheList.html('<div class="text-center py-4 text-muted">暂无历史记录</div>');
-                    return;
-                }
-
-                cacheData.reverse().forEach(item => {
-                    const cacheItem = $(`
-                        <div class="cache-item" data-url="${item.url}">
-                            <div class="cache-info">
-                                <div class="cache-name">${item.fileName}</div>
-                                <div class="cache-time">${item.timestamp}</div>
-                                <div class="cache-url">${item.url}</div>
-                            </div>
-                            <i class="fas fa-copy copy-cache" style="color: var(--text-secondary); cursor: pointer;"></i>
-                        </div>
-                    `);
-                    
-                    cacheList.append(cacheItem);
-                });
-
-                // 缓存项点击事件
-                $('.cache-item').on('click', function(e) {
-                    if (!$(e.target).hasClass('copy-cache')) {
-                        const url = $(this).data('url');
-                        originalImageURLs = [url];
-                        $('#resultSection').show();
-                        updateLinkFormat();
-                    }
-                });
-
-                // 复制按钮事件
-                $('.copy-cache').on('click', function(e) {
-                    e.stopPropagation();
-                    const url = $(this).closest('.cache-item').data('url');
-                    copyToClipboard(url);
-                    toastr.success('链接已复制');
-                });
-            }
-
-            // 其他辅助函数（calculateFileHash, compressImage, copyToClipboard 等）
-            // 这些函数与原始代码类似，这里省略以保持简洁...
-            async function calculateFileHash(file) {
-                const arrayBuffer = await file.arrayBuffer();
-                const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-            }
-
-            async function compressImage(file, quality = 0.75) {
-                return new Promise((resolve) => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const img = new Image();
-                    
-                    img.onload = function() {
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
-                        
-                        canvas.toBlob((blob) => {
-                            const compressedFile = new File([blob], file.name, { 
-                                type: 'image/jpeg' 
-                            });
-                            resolve(compressedFile);
-                        }, 'image/jpeg', quality);
-                    };
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => img.src = e.target.result;
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            function copyToClipboard(text) {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-            }
-
-            function adjustTextareaHeight() {
-                const textarea = $('#fileLink')[0];
-                textarea.style.height = 'auto';
-                textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-            }
-
-            function saveToCache(url, fileName, fileHash) {
-                const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
-                const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
-                
-                cacheData.push({
-                    url,
-                    fileName,
-                    hash: fileHash,
-                    timestamp
-                });
-                
-                localStorage.setItem('uploadCache', JSON.stringify(cacheData));
             }
 
             function getCachedData(fileHash) {
@@ -927,79 +203,228 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
             function handleCachedFile(cachedData) {
                 if (!originalImageURLs.includes(cachedData.url)) {
                     originalImageURLs.push(cachedData.url);
-                    updateResultDisplay();
-                    toastr.info('已从缓存加载');
+                    updateFileLinkDisplay();
+                    toastr.info('已从缓存中读取数据');
                 }
             }
 
-            async function handlePaste(event) {
-                const items = event.originalEvent.clipboardData?.items;
-                if (!items) return;
-
-                for (let item of items) {
-                    if (item.kind === 'file') {
-                        const file = item.getAsFile();
-                        const dataTransfer = new DataTransfer();
-                        const existingFiles = $('#fileInput')[0].files;
-                        
-                        for (let i = 0; i < existingFiles.length; i++) {
-                            dataTransfer.items.add(existingFiles[i]);
-                        }
-                        dataTransfer.items.add(file);
-                        
-                        $('#fileInput')[0].files = dataTransfer.files;
-                        await handleFileSelection();
-                        break;
-                    }
-                }
+            function updateFileLinkDisplay() {
+                $('#fileLink').val(originalImageURLs.join('\\n\\n'));
+                $('.form-group').show();
+                adjustTextareaHeight($('#fileLink')[0]);
             }
 
-            function updateStats() {
-                // 这里可以添加实际的统计逻辑
-                // 目前使用模拟数据
+            async function calculateFileHash(file) {
+                const arrayBuffer = await file.arrayBuffer();
+                const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+            }
+
+            function isFileInCache(fileHash) {
                 const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
-                $('#uploadCount').text(cacheData.length);
-                $('#totalCount').text(cacheData.length);
+                return cacheData.some(item => item.hash === fileHash);
             }
 
-            // Bing 背景图片
-            async function setBackgroundImages() {
+            async function uploadFile(file, fileHash) {
                 try {
-                    const response = await fetch('/bing-images');
-                    const data = await response.json();
-                    
-                    if (data.data && data.data.length > 0) {
-                        const images = data.data.map(item => item.url);
-                        let currentIndex = 0;
-                        
-                        function changeBackground() {
-                            const background = $('#background');
-                            const nextImage = new Image();
-                            
-                            nextImage.onload = function() {
-                                background.css('background-image', 'url(' + images[currentIndex] + ')');
-                                currentIndex = (currentIndex + 1) % images.length;
-                            };
-                            
-                            nextImage.src = images[currentIndex];
-                        }
-                        
-                        changeBackground();
-                        setInterval(changeBackground, 8000);
+                    toastr.info('上传中...', '', { timeOut: 0 });
+                    const interfaceInfo = { enableCompression: enableCompression };
+                    if (file.type.startsWith('image/') && file.type !== 'image/gif' && interfaceInfo.enableCompression) {
+                        toastr.info('正在压缩...', '', { timeOut: 0 });
+                        const compressedFile = await compressImage(file);
+                        file = compressedFile;
+                    }
+
+                    const formData = new FormData($('#uploadForm')[0]);
+                    formData.set('file', file, file.name);
+
+                    const uploadResponse = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const responseData = await handleUploadResponse(uploadResponse);
+                    if (responseData.error) {
+                        toastr.error(responseData.error);
+                    } else {
+                        originalImageURLs.push(responseData.data);
+                        $('#fileLink').val(originalImageURLs.join('\\n\\n'));
+                        $('.form-group').show();
+                        adjustTextareaHeight($('#fileLink')[0]);
+                        toastr.success('文件上传成功！');
+                        saveToLocalCache(responseData.data, file.name, fileHash);
                     }
                 } catch (error) {
-                    console.error('加载背景图片失败:', error);
+                    console.error('处理文件时出现错误:', error);
+                    $('#fileLink').val('文件处理失败！');
+                    toastr.error('文件处理失败！');
+                } finally {
+                    toastr.clear();
                 }
             }
+
+            async function handleUploadResponse(response) {
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    const errorData = await response.json();
+                    return { error: errorData.error };
+                }
+            }
+
+            $(document).on('paste', async function(event) {
+                const clipboardData = event.originalEvent.clipboardData;
+                if (clipboardData && clipboardData.items) {
+                    for (let i = 0; i < clipboardData.items.length; i++) {
+                        const item = clipboardData.items[i];
+                        if (item.kind === 'file') {
+                            const pasteFile = item.getAsFile();
+                            const dataTransfer = new DataTransfer();
+                            const existingFiles = $('#fileInput')[0].files;
+                            for (let j = 0; j < existingFiles.length; j++) {
+                                dataTransfer.items.add(existingFiles[j]);
+                            }
+                            dataTransfer.items.add(pasteFile);
+                            $('#fileInput')[0].files = dataTransfer.files;
+                            $('#fileInput').trigger('change');
+                            break;
+                        }
+                    }
+                }
+            });
+
+            async function compressImage(file, quality = 0.75) {
+                return new Promise((resolve) => {
+                    const image = new Image();
+                    image.onload = () => {
+                        const targetWidth = image.width;
+                        const targetHeight = image.height;
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = targetWidth;
+                        canvas.height = targetHeight;
+                        ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+                        canvas.toBlob((blob) => {
+                            const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                            toastr.success('图片压缩成功！');
+                            resolve(compressedFile);
+                        }, 'image/jpeg', quality);
+                    };
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        image.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            $('#urlBtn, #bbcodeBtn, #markdownBtn').on('click', function() {
+                const fileLinks = originalImageURLs.map(url => url.trim()).filter(url => url !== '');
+                if (fileLinks.length > 0) {
+                    let formattedLinks = '';
+                    switch ($(this).attr('id')) {
+                        case 'urlBtn':
+                            formattedLinks = fileLinks.join('\\n\\n');
+                            break;
+                        case 'bbcodeBtn':
+                            formattedLinks = fileLinks.map(url => '[img]' + url + '[/img]').join('\\n\\n');
+                            break;
+                        case 'markdownBtn':
+                            formattedLinks = fileLinks.map(url => '![image](' + url + ')').join('\\n\\n');
+                            break;
+                        default:
+                            formattedLinks = fileLinks.join('\\n');
+                    }
+                    $('#fileLink').val(formattedLinks);
+                    adjustTextareaHeight($('#fileLink')[0]);
+                    copyToClipboardWithToastr(formattedLinks);
+                }
+            });
+
+            function handleFileClear(event) {
+                $('#fileLink').val('');
+                adjustTextareaHeight($('#fileLink')[0]);
+                hideButtonsAndTextarea();
+                originalImageURLs = [];
+            }
+
+            function adjustTextareaHeight(textarea) {
+                textarea.style.height = '1px';
+                textarea.style.height = (textarea.scrollHeight > 200 ? 200 : textarea.scrollHeight) + 'px';
+                if (textarea.scrollHeight > 200) {
+                    textarea.style.overflowY = 'auto';
+                } else {
+                    textarea.style.overflowY = 'hidden';
+                }
+            }
+
+            function copyToClipboardWithToastr(text) {
+                const input = document.createElement('textarea');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                toastr.success('已复制到剪贴板', '', { timeOut: 300 });
+            }
+
+            function hideButtonsAndTextarea() {
+                $('#urlBtn, #bbcodeBtn, #markdownBtn, #fileLink').parent('.form-group').hide();
+            }
+
+            function saveToLocalCache(url, fileName, fileHash) {
+                const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
+                const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
+                cacheData.push({ url, fileName, hash: fileHash, timestamp });
+                localStorage.setItem('uploadCache', JSON.stringify(cacheData));
+            }
+
+            $('#viewCacheBtn').on('click', function() {
+                const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
+                const cacheContent = $('#cacheContent');
+                cacheContent.empty();
+                if (isCacheVisible) {
+                    cacheContent.hide();
+                    $('#fileLink').val('');
+                    $('#fileLink').parent('.form-group').hide();
+                    isCacheVisible = false;
+                } else {
+                    if (cacheData.length > 0) {
+                        cacheData.reverse();
+                        cacheData.forEach((item) => {
+                            const listItem = $('<div class="cache-item"></div>')
+                                .text(item.timestamp + ' - ' + item.fileName)
+                                .data('url', item.url);
+                            cacheContent.append(listItem);
+                            cacheContent.append('<br>');
+                        });
+                        cacheContent.show();
+                    } else {
+                        cacheContent.append('<div>还没有记录哦！</div>').show();
+                    }
+                    isCacheVisible = true;
+                }
+            });
+
+            $(document).on('click', '.cache-item', function() {
+                const url = $(this).data('url');
+                originalImageURLs = [];
+                $('#fileLink').val('');
+                originalImageURLs.push(url);
+                $('#fileLink').val(originalImageURLs.map(url => url.trim()).join('\\n\\n'));
+                $('.form-group').show();
+                adjustTextareaHeight($('#fileLink')[0]);
+            });
         });
     </script>
 </body>
 </html>`, {
-    headers: { 'Content-Type': 'text/html;charset=UTF-8' }
-  });
-
-  await cache.put(cacheKey, response.clone());
-  return response;
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' }
+    });
+    
+    await cache.put(cacheKey, response.clone());
+    return response;
 }
 
 async function handleAdminRequest(DATABASE, request, USERNAME, PASSWORD) {
@@ -1579,5 +1004,3 @@ function isImageFile(url) {
         return false;
     }
 }
-
-
