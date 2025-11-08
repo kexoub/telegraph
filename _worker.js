@@ -26,7 +26,7 @@ export default {
             case '/delete-images':
                 return await handleDeleteImagesRequest(request, DATABASE, USERNAME, PASSWORD);
             case '/random':
-                return await handleRandomRequest(request, DATABASE);
+                return await handleRandomRequest(request, DATABASE); // 新增随机图片路由
             default:
                 return await handleImageRequest(request, DATABASE, TG_BOT_TOKEN);
         }
@@ -57,9 +57,7 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
         return cachedResponse;
     }
     
-    // 修复：使用转义的HTML字符串
-    const htmlContent = `
-<!DOCTYPE html>
+    const response = new Response(`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -68,530 +66,58 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
     <meta name="keywords" content="Telegraph图床,Workers图床, Cloudflare, Workers,telegra.ph, 图床">
     <title>Telegraph图床-基于Workers的图床服务</title>
     <link rel="icon" href="https://p1.meituan.net/csc/c195ee91001e783f39f41ffffbbcbd484286.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/css/fileinput.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css" integrity="sha512-T584yQ/tdRR5QwOpfvDfVQUidzfgc2339Lc8uBDtcp/wYu80d7jwBgAxbyMh0a9YM9F8N3tdErpFI8iaGx6x5g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/css/fileinput.min.css" integrity="sha512-qPjB0hQKYTx1Za9Xip5h0PXcxaR1cRbHuZHo9z+gb5IgM6ZOTtIH4QLITCxcCp/8RMXtw2Z85MIZLv6LfGTLiw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" integrity="sha512-6S2HWzVFxruDlZxI3sXOZZ4/eJ8AcxkQH1+JjSe/ONCEqR9L4Ysq5JdT5ipqtzU7WHalNwzwBv+iE51gNHJNqQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --warning-color: #f72585;
-            --glass-bg: rgba(255, 255, 255, 0.25);
-            --glass-border: rgba(255, 255, 255, 0.18);
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            --transition: all 0.3s ease;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            position: relative;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow-x: hidden;
-        }
-        
-        .background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            z-index: -2;
-            transition: opacity 1.5s ease-in-out;
-            opacity: 1;
-        }
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            z-index: -1;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 900px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow);
-            padding: 30px;
-            width: 100%;
-            text-align: center;
-            margin-bottom: 20px;
-            transition: var(--transition);
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            position: relative;
-        }
-        
-        .title {
-            font-size: 28px;
-            font-weight: 700;
-            color: white;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            letter-spacing: 1px;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .control-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: var(--transition);
-            backdrop-filter: blur(5px);
-        }
-        
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-        
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.4);
-            border-radius: 15px;
-            padding: 40px 20px;
-            margin-bottom: 25px;
-            transition: var(--transition);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .upload-area.active {
-            border-color: var(--accent-color);
-            background: rgba(67, 97, 238, 0.1);
-        }
-        
-        .upload-icon {
-            font-size: 50px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 15px;
-        }
-        
-        .upload-text {
-            color: white;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        
-        .upload-hint {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 14px;
-        }
-        
-        .file-input-container {
-            margin-bottom: 20px;
-        }
-        
-        .results-panel {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            transition: var(--transition);
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-        }
-        
-        .results-panel.show {
-            max-height: 500px;
-            opacity: 1;
-        }
-        
-        .format-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .format-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 50px;
-            color: white;
-            padding: 8px 20px;
-            font-size: 14px;
-            transition: var(--transition);
-            backdrop-filter: blur(5px);
-        }
-        
-        .format-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        .format-btn.active {
-            background: var(--primary-color);
-        }
-        
-        .result-textarea {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: white;
-            padding: 15px;
-            width: 100%;
-            min-height: 120px;
-            resize: vertical;
-            transition: var(--transition);
-        }
-        
-        .result-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.3);
-        }
-        
-        .history-panel {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 15px;
-            transition: var(--transition);
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-        }
-        
-        .history-panel.show {
-            max-height: 300px;
-            opacity: 1;
-            overflow-y: auto;
-        }
-        
-        .history-title {
-            color: white;
-            font-size: 16px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .history-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-        
-        .history-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(5px);
-        }
-        
-        .history-info {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
-        
-        .history-name {
-            font-weight: 500;
-            margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .history-time {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .history-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .history-action {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .history-action:hover {
-            color: white;
-            transform: scale(1.2);
-        }
-        
-        .empty-history {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 20px;
-        }
-        
-        .footer {
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            font-size: 14px;
-            margin-top: 20px;
-        }
-        
-        .footer a {
-            color: rgba(255, 255, 255, 0.9);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-        
-        .footer a:hover {
-            color: white;
-            text-decoration: underline;
-        }
-        
-        .badge {
-            background: var(--primary-color);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 50px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            margin: 15px 0;
-            overflow: hidden;
-            display: none;
-        }
-        
-        .progress-bar {
-            height: 6px;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-            border-radius: 10px;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .stat-item {
-            text-align: center;
-            color: white;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .card {
-                padding: 20px;
-            }
-            
-            .title {
-                font-size: 22px;
-            }
-            
-            .format-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .format-btn {
-                width: 100%;
-                margin-bottom: 5px;
-            }
-            
-            .header {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .controls {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-        
-        .toast-success {
-            background: rgba(76, 201, 240, 0.9) !important;
-            backdrop-filter: blur(10px);
-        }
-        
-        .toast-error {
-            background: rgba(247, 37, 133, 0.9) !important;
-            backdrop-filter: blur(10px);
-        }
-        
-        .toast-info {
-            background: rgba(67, 97, 238, 0.9) !important;
-            backdrop-filter: blur(10px);
-        }
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; position: relative; }
+        .background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; z-index: -1; transition: opacity 1s ease-in-out; opacity: 1; }
+        .card { background-color: rgba(255, 255, 255, 0.8); border: none; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); padding: 20px; width: 90%; max-width: 400px; text-align: center; margin: 0 auto; position: relative; }
+        .uniform-height { margin-top: 20px; }
+        #viewCacheBtn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: rgba(0, 0, 0, 0.1); cursor: pointer; font-size: 24px; transition: color 0.3s ease; }
+        #viewCacheBtn:hover { color: rgba(0, 0, 0, 0.4); }
+        #compressionToggleBtn { position: absolute; top: 10px; right: 50px; background: none; border: none; color: rgba(0, 0, 0, 0.1); cursor: pointer; font-size: 24px; transition: color 0.3s ease; }
+        #compressionToggleBtn:hover { color: rgba(0, 0, 0, 0.4); }
+        #cacheContent { margin-top: 20px; max-height: 200px; border-radius: 5px; overflow-y: auto; }
+        .cache-title { text-align: left; margin-bottom: 10px; }
+        .cache-item { display: block; cursor: pointer; border-radius: 4px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease; text-align: left; padding: 10px; }
+        .cache-item:hover { background-color: #e9ecef; }
+        .project-link { font-size: 14px; text-align: center; margin-top: 5px; margin-bottom: 0; }
+        textarea.form-control { max-height: 200px; overflow-y: hidden; resize: none; }
     </style>
 </head>
 <body>
     <div class="background" id="background"></div>
-    <div class="overlay"></div>
-    
-    <div class="container">
-        <div class="card">
-            <div class="header">
-                <h1 class="title">Telegraph图床 <span class="badge">Beta</span></h1>
-                <div class="controls">
-                    <button type="button" class="control-btn" id="viewCacheBtn" title="查看历史记录">
-                        <i class="fas fa-history"></i>
-                    </button>
-                    <button type="button" class="control-btn" id="compressionToggleBtn" title="开启压缩">
-                        <i class="fas fa-compress-arrows-alt"></i>
-                    </button>
-                    <button type="button" class="control-btn" id="infoBtn" title="使用说明">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
+    <div class="card">
+        <div class="title">Telegraph图床</div>
+        <button type="button" class="btn" id="viewCacheBtn" title="查看历史记录"><i class="fas fa-clock"></i></button>
+        <button type="button" class="btn" id="compressionToggleBtn"><i class="fas fa-compress"></i></button>
+        <div class="card-body">
+            <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+                <div class="file-input-container">
+                    <input id="fileInput" name="file" type="file" class="form-control-file" data-browse-on-zone-click="true" multiple>
                 </div>
-            </div>
-            
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">
-                    <i class="fas fa-cloud-upload-alt"></i>
+                <div class="form-group mb-3 uniform-height" style="display: none;">
+                    <button type="button" class="btn btn-light mr-2" id="urlBtn">URL</button>
+                    <button type="button" class="btn btn-light mr-2" id="bbcodeBtn">BBCode</button>
+                    <button type="button" class="btn btn-light" id="markdownBtn">Markdown</button>
                 </div>
-                <p class="upload-text">拖放文件到此处或点击上传</p>
-                <p class="upload-hint">支持图片、GIF和视频文件，最大 ${maxSizeMB}MB</p>
-            </div>
-            
-            <div class="file-input-container">
-                <input id="fileInput" name="file" type="file" class="form-control-file" data-browse-on-zone-click="true" multiple>
-            </div>
-            
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-            
-            <div class="results-panel" id="resultsPanel">
-                <div class="format-buttons">
-                    <button type="button" class="format-btn active" id="urlBtn">URL链接</button>
-                    <button type="button" class="format-btn" id="bbcodeBtn">BBCode</button>
-                    <button type="button" class="format-btn" id="markdownBtn">Markdown</button>
-                    <button type="button" class="format-btn" id="htmlBtn">HTML</button>
+                <div class="form-group mb-3 uniform-height" style="display: none;">
+                    <textarea class="form-control" id="fileLink" readonly></textarea>
                 </div>
-                <textarea class="result-textarea" id="fileLink" placeholder="上传后的链接将显示在这里..." readonly></textarea>
-            </div>
-            
-            <div class="history-panel" id="historyPanel">
-                <div class="history-title">
-                    <span>上传历史</span>
-                    <button class="control-btn" id="clearHistoryBtn" title="清空历史">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                <div id="cacheContent"></div>
-            </div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="totalUploads">0</div>
-                    <div class="stat-label">总上传</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="todayUploads">0</div>
-                    <div class="stat-label">今日上传</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="totalSize">0MB</div>
-                    <div class="stat-label">总大小</div>
-                </div>
-            </div>
+                <div id="cacheContent" style="display: none;"></div>
+            </form>
         </div>
-        
-        <div class="footer">
-            <p>项目开源于 GitHub - <a href="https://github.com/0-RTT/telegraph" target="_blank" rel="noopener noreferrer">0-RTT/telegraph</a></p>
-        </div>
+        <p class="project-link">项目开源于 GitHub - <a href="https://github.com/0-RTT/telegraph" target="_blank" rel="noopener noreferrer">0-RTT/telegraph</a></p>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/fileinput.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/locales/zh.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/fileinput.min.js" integrity="sha512-CCLv901EuJXf3k0OrE5qix8s2HaCDpjeBERR2wVHUwzEIc7jfiK9wqJFssyMOc1lJ/KvYKsDenzxbDTAQ4nh1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.2.7/js/locales/zh.min.js" integrity="sha512-IizKWmZY3aznnbFx/Gj8ybkRyKk7wm+d7MKmEgOMRQDN1D1wmnDRupfXn6X04pwIyKFWsmFVgrcl0j6W3Z5FDQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <script>
-        toastr.options = {
-            closeButton: true,
-            progressBar: true,
-            positionClass: "toast-top-right",
-            timeOut: 3000,
-            extendedTimeOut: 1000
-        };
-        
         async function fetchBingImages() {
             const response = await fetch('/bing-images');
             const data = await response.json();
@@ -599,145 +125,74 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
         }
 
         async function setBackgroundImages() {
-            try {
-                const images = await fetchBingImages();
-                const backgroundDiv = document.getElementById('background');
-                if (images.length > 0) {
-                    backgroundDiv.style.backgroundImage = 'url(' + images[0] + ')';
-                }
-                let index = 0;
-                let currentBackgroundDiv = backgroundDiv;
-                setInterval(() => {
-                    const nextIndex = (index + 1) % images.length;
-                    const nextBackgroundDiv = document.createElement('div');
-                    nextBackgroundDiv.className = 'background next';
-                    nextBackgroundDiv.style.backgroundImage = 'url(' + images[nextIndex] + ')';
-                    document.body.appendChild(nextBackgroundDiv);
-                    nextBackgroundDiv.style.opacity = 0;
-                    setTimeout(() => {
-                        nextBackgroundDiv.style.opacity = 1;
-                    }, 50);
-                    setTimeout(() => {
-                        document.body.removeChild(currentBackgroundDiv);
-                        currentBackgroundDiv = nextBackgroundDiv;
-                        index = nextIndex;
-                    }, 1500);
-                }, 8000);
-            } catch (error) {
-                console.error('设置背景图片失败:', error);
+            const images = await fetchBingImages();
+            const backgroundDiv = document.getElementById('background');
+            if (images.length > 0) {
+                backgroundDiv.style.backgroundImage = 'url(' + images[0] + ')';
             }
+            let index = 0;
+            let currentBackgroundDiv = backgroundDiv;
+            setInterval(() => {
+                const nextIndex = (index + 1) % images.length;
+                const nextBackgroundDiv = document.createElement('div');
+                nextBackgroundDiv.className = 'background next';
+                nextBackgroundDiv.style.backgroundImage = 'url(' + images[nextIndex] + ')';
+                document.body.appendChild(nextBackgroundDiv);
+                nextBackgroundDiv.style.opacity = 0;
+                setTimeout(() => {
+                    nextBackgroundDiv.style.opacity = 1;
+                }, 50);
+                setTimeout(() => {
+                    document.body.removeChild(currentBackgroundDiv);
+                    currentBackgroundDiv = nextBackgroundDiv;
+                    index = nextIndex;
+                }, 1000);
+            }, 5000);
         }
 
         $(document).ready(function() {
             let originalImageURLs = [];
             let isCacheVisible = false;
             let enableCompression = true;
-            let currentFormat = 'url';
-            
-            updateStats();
+
             initFileInput();
             setBackgroundImages();
-            
-            $('#compressionToggleBtn').attr('title', enableCompression ? '关闭压缩' : '开启压缩');
-            
+
+            const tooltipText = enableCompression ? '关闭压缩' : '开启压缩';
+            $('#compressionToggleBtn').attr('title', tooltipText);
+
             $('#compressionToggleBtn').on('click', function() {
                 enableCompression = !enableCompression;
                 const icon = $(this).find('i');
+                icon.toggleClass('fa-compress fa-expand');
                 const tooltipText = enableCompression ? '关闭压缩' : '开启压缩';
                 $(this).attr('title', tooltipText);
-                
-                if (enableCompression) {
-                    icon.removeClass('fa-expand-arrows-alt').addClass('fa-compress-arrows-alt');
-                    toastr.info('已开启图片压缩');
-                } else {
-                    icon.removeClass('fa-compress-arrows-alt').addClass('fa-expand-arrows-alt');
-                    toastr.info('已关闭图片压缩');
-                }
             });
-            
-            $('#infoBtn').on('click', function() {
-                toastr.info('支持拖放上传，可同时上传多个文件。开启压缩可减小图片体积。', '使用说明', {timeOut: 5000});
-            });
-            
-            $('#clearHistoryBtn').on('click', function() {
-                if (confirm('确定要清空所有上传历史吗？此操作不可恢复。')) {
-                    localStorage.removeItem('uploadCache');
-                    $('#cacheContent').empty();
-                    $('#cacheContent').append('<div class="empty-history">暂无上传记录</div>');
-                    updateStats();
-                    toastr.success('历史记录已清空');
-                }
-            });
-            
-            $('.format-btn').on('click', function() {
-                $('.format-btn').removeClass('active');
-                $(this).addClass('active');
-                currentFormat = $(this).attr('id').replace('Btn', '');
-                updateFileLinkDisplay();
-            });
-            
+
             function initFileInput() {
                 $("#fileInput").fileinput({
                     theme: 'fa',
                     language: 'zh',
-                    browseClass: "btn btn-primary btn-file",
+                    browseClass: "btn btn-primary",
                     removeClass: "btn btn-danger",
                     showUpload: false,
-                    showPreview: true,
-                    showRemove: true,
-                    showCancel: true,
-                    showCaption: true,
-                    dropZoneEnabled: true,
-                    dropZoneTitle: '拖放文件到这里或点击上传',
-                    fileActionSettings: {
-                        showRemove: true,
-                        showUpload: false,
-                        showZoom: false,
-                        showDrag: false
-                    },
-                    allowedFileTypes: ['image', 'video'],
-                    allowedFileExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'mp4', 'avi', 'mov'],
-                    maxFileSize: ${maxSizeMB * 1024},
-                    maxFilesNum: 10,
-                    previewSettings: {
-                        image: {width: "auto", height: "160px"},
-                        video: {width: "auto", height: "160px"}
-                    }
+                    showPreview: false,
                 }).on('filebatchselected', handleFileSelection)
-                  .on('fileclear', handleFileClear)
-                  .on('fileloaded', function(event, file, previewId, index, reader) {
-                      $('#uploadArea').addClass('active');
-                  })
-                  .on('filecleared', function(event) {
-                      $('#uploadArea').removeClass('active');
-                      $('#resultsPanel').removeClass('show');
-                      originalImageURLs = [];
-                  });
+                  .on('fileclear', handleFileClear);
             }
 
             async function handleFileSelection() {
                 const files = $('#fileInput')[0].files;
-                $('#progressContainer').show();
-                $('#progressBar').css('width', '0%');
-                
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     const fileHash = await calculateFileHash(file);
                     const cachedData = getCachedData(fileHash);
-                    
-                    $('#progressBar').css('width', ((i + 1) / files.length * 100) + '%');
-                    
                     if (cachedData) {
                         handleCachedFile(cachedData);
                     } else {
                         await uploadFile(file, fileHash);
                     }
                 }
-                
-                setTimeout(() => {
-                    $('#progressContainer').hide();
-                    $('#progressBar').css('width', '0%');
-                }, 1000);
             }
 
             function getCachedData(fileHash) {
@@ -749,34 +204,14 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 if (!originalImageURLs.includes(cachedData.url)) {
                     originalImageURLs.push(cachedData.url);
                     updateFileLinkDisplay();
-                    toastr.info('已从缓存加载: ' + cachedData.fileName);
+                    toastr.info('已从缓存中读取数据');
                 }
             }
 
             function updateFileLinkDisplay() {
-                if (originalImageURLs.length === 0) return;
-                
-                $('#resultsPanel').addClass('show');
-                let formattedLinks = '';
-                
-                switch (currentFormat) {
-                    case 'url':
-                        formattedLinks = originalImageURLs.join('\\n\\n');
-                        break;
-                    case 'bbcode':
-                        formattedLinks = originalImageURLs.map(url => '[img]' + url + '[/img]').join('\\n\\n');
-                        break;
-                    case 'markdown':
-                        formattedLinks = originalImageURLs.map(url => '![](' + url + ')').join('\n\n');
-                        break;
-                    case 'html':
-                        formattedLinks = originalImageURLs.map(url => '<img src="' + url + '" alt="Image">').join('\\n\\n');
-                        break;
-                }
-                
-                $('#fileLink').val(formattedLinks);
+                $('#fileLink').val(originalImageURLs.join('\\n\\n'));
+                $('.form-group').show();
                 adjustTextareaHeight($('#fileLink')[0]);
-                copyToClipboardWithToastr(formattedLinks);
             }
 
             async function calculateFileHash(file) {
@@ -786,17 +221,23 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
             }
 
+            function isFileInCache(fileHash) {
+                const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
+                return cacheData.some(item => item.hash === fileHash);
+            }
+
             async function uploadFile(file, fileHash) {
                 try {
-                    toastr.info('正在上传: ' + file.name, '上传中', {timeOut: 0});
-                    
-                    if (file.type.startsWith('image/') && file.type !== 'image/gif' && enableCompression) {
-                        toastr.info('正在压缩: ' + file.name, '压缩中', {timeOut: 0});
-                        file = await compressImage(file);
+                    toastr.info('上传中...', '', { timeOut: 0 });
+                    const interfaceInfo = { enableCompression: enableCompression };
+                    if (file.type.startsWith('image/') && file.type !== 'image/gif' && interfaceInfo.enableCompression) {
+                        toastr.info('正在压缩...', '', { timeOut: 0 });
+                        const compressedFile = await compressImage(file);
+                        file = compressedFile;
                     }
 
-                    const formData = new FormData();
-                    formData.append('file', file, file.name);
+                    const formData = new FormData($('#uploadForm')[0]);
+                    formData.set('file', file, file.name);
 
                     const uploadResponse = await fetch('/upload', {
                         method: 'POST',
@@ -805,17 +246,19 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
 
                     const responseData = await handleUploadResponse(uploadResponse);
                     if (responseData.error) {
-                        toastr.error(responseData.error, '上传失败');
+                        toastr.error(responseData.error);
                     } else {
                         originalImageURLs.push(responseData.data);
-                        updateFileLinkDisplay();
-                        toastr.success(file.name + ' 上传成功！');
+                        $('#fileLink').val(originalImageURLs.join('\\n\\n'));
+                        $('.form-group').show();
+                        adjustTextareaHeight($('#fileLink')[0]);
+                        toastr.success('文件上传成功！');
                         saveToLocalCache(responseData.data, file.name, fileHash);
-                        updateStats();
                     }
                 } catch (error) {
                     console.error('处理文件时出现错误:', error);
-                    toastr.error('文件处理失败: ' + file.name);
+                    $('#fileLink').val('文件处理失败！');
+                    toastr.error('文件处理失败！');
                 } finally {
                     toastr.clear();
                 }
@@ -830,54 +273,6 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 }
             }
 
-            const uploadArea = document.getElementById('uploadArea');
-            
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, preventDefaults, false);
-            });
-            
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            
-            ['dragenter', 'dragover'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, highlight, false);
-            });
-            
-            ['dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, unhighlight, false);
-            });
-            
-            function highlight() {
-                uploadArea.classList.add('active');
-            }
-            
-            function unhighlight() {
-                uploadArea.classList.remove('active');
-            }
-            
-            uploadArea.addEventListener('drop', handleDrop, false);
-            
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                
-                const dataTransfer = new DataTransfer();
-                const existingFiles = $('#fileInput')[0].files;
-                
-                for (let i = 0; i < existingFiles.length; i++) {
-                    dataTransfer.items.add(existingFiles[i]);
-                }
-                
-                for (let i = 0; i < files.length; i++) {
-                    dataTransfer.items.add(files[i]);
-                }
-                
-                $('#fileInput')[0].files = dataTransfer.files;
-                $('#fileInput').trigger('change');
-            }
-
             $(document).on('paste', async function(event) {
                 const clipboardData = event.originalEvent.clipboardData;
                 if (clipboardData && clipboardData.items) {
@@ -887,11 +282,9 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                             const pasteFile = item.getAsFile();
                             const dataTransfer = new DataTransfer();
                             const existingFiles = $('#fileInput')[0].files;
-                            
                             for (let j = 0; j < existingFiles.length; j++) {
                                 dataTransfer.items.add(existingFiles[j]);
                             }
-                            
                             dataTransfer.items.add(pasteFile);
                             $('#fileInput')[0].files = dataTransfer.files;
                             $('#fileInput').trigger('change');
@@ -914,6 +307,7 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                         ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
                         canvas.toBlob((blob) => {
                             const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                            toastr.success('图片压缩成功！');
                             resolve(compressedFile);
                         }, 'image/jpeg', quality);
                     };
@@ -925,13 +319,38 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 });
             }
 
+            $('#urlBtn, #bbcodeBtn, #markdownBtn').on('click', function() {
+                const fileLinks = originalImageURLs.map(url => url.trim()).filter(url => url !== '');
+                if (fileLinks.length > 0) {
+                    let formattedLinks = '';
+                    switch ($(this).attr('id')) {
+                        case 'urlBtn':
+                            formattedLinks = fileLinks.join('\\n\\n');
+                            break;
+                        case 'bbcodeBtn':
+                            formattedLinks = fileLinks.map(url => '[img]' + url + '[/img]').join('\\n\\n');
+                            break;
+                        case 'markdownBtn':
+                            formattedLinks = fileLinks.map(url => '![image](' + url + ')').join('\\n\\n');
+                            break;
+                        default:
+                            formattedLinks = fileLinks.join('\\n');
+                    }
+                    $('#fileLink').val(formattedLinks);
+                    adjustTextareaHeight($('#fileLink')[0]);
+                    copyToClipboardWithToastr(formattedLinks);
+                }
+            });
+
             function handleFileClear(event) {
-                $('#resultsPanel').removeClass('show');
+                $('#fileLink').val('');
+                adjustTextareaHeight($('#fileLink')[0]);
+                hideButtonsAndTextarea();
                 originalImageURLs = [];
             }
 
             function adjustTextareaHeight(textarea) {
-                textarea.style.height = 'auto';
+                textarea.style.height = '1px';
                 textarea.style.height = (textarea.scrollHeight > 200 ? 200 : textarea.scrollHeight) + 'px';
                 if (textarea.scrollHeight > 200) {
                     textarea.style.overflowY = 'auto';
@@ -947,15 +366,11 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
                 input.select();
                 document.execCommand('copy');
                 document.body.removeChild(input);
-                
-                const formatNames = {
-                    'url': 'URL链接',
-                    'bbcode': 'BBCode',
-                    'markdown': 'Markdown',
-                    'html': 'HTML'
-                };
-                
-                toastr.success(formatNames[currentFormat] + ' 已复制到剪贴板', '', { timeOut: 2000 });
+                toastr.success('已复制到剪贴板', '', { timeOut: 300 });
+            }
+
+            function hideButtonsAndTextarea() {
+                $('#urlBtn, #bbcodeBtn, #markdownBtn, #fileLink').parent('.form-group').hide();
             }
 
             function saveToLocalCache(url, fileName, fileHash) {
@@ -967,94 +382,50 @@ async function handleRootRequest(request, USERNAME, PASSWORD, enableAuth) {
 
             $('#viewCacheBtn').on('click', function() {
                 const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
-                const historyPanel = $('#historyPanel');
                 const cacheContent = $('#cacheContent');
-                
                 cacheContent.empty();
-                
                 if (isCacheVisible) {
-                    historyPanel.removeClass('show');
+                    cacheContent.hide();
+                    $('#fileLink').val('');
+                    $('#fileLink').parent('.form-group').hide();
                     isCacheVisible = false;
                 } else {
                     if (cacheData.length > 0) {
-                        cacheData.reverse().forEach((item, index) => {
-                            if (index < 20) {
-                                const listItem = $('<div class="history-item"></div>');
-                                listItem.html(
-                                    '<div class="history-info">' +
-                                        '<div class="history-name">' + item.fileName + '</div>' +
-                                        '<div class="history-time">' + item.timestamp + '</div>' +
-                                    '</div>' +
-                                    '<div class="history-actions">' +
-                                        '<button class="history-action view-btn" title="查看" data-url="' + item.url + '">' +
-                                            '<i class="fas fa-eye"></i>' +
-                                        '</button>' +
-                                        '<button class="history-action copy-btn" title="复制链接" data-url="' + item.url + '">' +
-                                            '<i class="fas fa-copy"></i>' +
-                                        '</button>' +
-                                    '</div>'
-                                );
-                                cacheContent.append(listItem);
-                            }
+                        cacheData.reverse();
+                        cacheData.forEach((item) => {
+                            const listItem = $('<div class="cache-item"></div>')
+                                .text(item.timestamp + ' - ' + item.fileName)
+                                .data('url', item.url);
+                            cacheContent.append(listItem);
+                            cacheContent.append('<br>');
                         });
+                        cacheContent.show();
                     } else {
-                        cacheContent.append('<div class="empty-history">暂无上传记录</div>');
+                        cacheContent.append('<div>还没有记录哦！</div>').show();
                     }
-                    historyPanel.addClass('show');
                     isCacheVisible = true;
                 }
             });
 
-            $(document).on('click', '.history-item .view-btn', function() {
+            $(document).on('click', '.cache-item', function() {
                 const url = $(this).data('url');
-                window.open(url, '_blank');
+                originalImageURLs = [];
+                $('#fileLink').val('');
+                originalImageURLs.push(url);
+                $('#fileLink').val(originalImageURLs.map(url => url.trim()).join('\\n\\n'));
+                $('.form-group').show();
+                adjustTextareaHeight($('#fileLink')[0]);
             });
-            
-            $(document).on('click', '.history-item .copy-btn', function() {
-                const url = $(this).data('url');
-                const input = document.createElement('textarea');
-                input.value = url;
-                document.body.appendChild(input);
-                input.select();
-                document.execCommand('copy');
-                document.body.removeChild(input);
-                toastr.success('链接已复制到剪贴板');
-            });
-            
-            $(document).on('click', '.history-item', function() {
-                const url = $(this).find('.view-btn').data('url');
-                originalImageURLs = [url];
-                $('#resultsPanel').addClass('show');
-                updateFileLinkDisplay();
-            });
-            
-            function updateStats() {
-                const cacheData = JSON.parse(localStorage.getItem('uploadCache')) || [];
-                const today = new Date().toLocaleDateString('zh-CN');
-                const todayItems = cacheData.filter(item => {
-                    const itemDate = new Date(item.timestamp.replace(/\\//g, '-')).toLocaleDateString('zh-CN');
-                    return itemDate === today;
-                });
-                
-                $('#totalUploads').text(cacheData.length);
-                $('#todayUploads').text(todayItems.length);
-                const totalSizeMB = (cacheData.length * 0.5).toFixed(1);
-                $('#totalSize').text(totalSizeMB + 'MB');
-            }
         });
     </script>
 </body>
-</html>`;
-
-    const response = new Response(htmlContent, {
+</html>`, {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' }
     });
     
     await cache.put(cacheKey, response.clone());
     return response;
 }
-
-// 其他函数保持不变（handleAdminRequest, isValidCredentials, generateAdminPage, fetchMediaData, handleUploadRequest, handleImageRequest, handleBingImagesRequest, handleDeleteImagesRequest, handleRandomRequest, fetchImageMediaData, isImageFile）
 
 async function handleAdminRequest(DATABASE, request, USERNAME, PASSWORD) {
     if (!authenticate(request, USERNAME, PASSWORD)) {
@@ -1081,11 +452,12 @@ async function generateAdminPage(DATABASE) {
         const fileExtension = url.split('.').pop().toLowerCase();
         const timestamp = url.split('/').pop().split('.')[0];
         const mediaType = fileExtension;
+        let displayUrl = url;
         
         const supportedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'];
         const supportedVideoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm'];
         const isSupported = [...supportedImageExtensions, ...supportedVideoExtensions].includes(fileExtension);
-        const backgroundStyle = isSupported ? '' : 'style="font-size: 50px; display: flex; justify-content: center; align-items: center;"';
+        const backgroundStyle = isSupported ? '' : `style="font-size: 50px; display: flex; justify-content: center; align-items: center;"`;
         const icon = isSupported ? '' : '📁';
         
         return `
@@ -1093,239 +465,50 @@ async function generateAdminPage(DATABASE) {
                 <div class="media-type">${mediaType}</div>
                 ${supportedVideoExtensions.includes(fileExtension) ? `
                     <video class="gallery-video" preload="none" style="width: 100%; height: 100%; object-fit: contain;" controls>
-                        <source data-src="${url}" type="video/${fileExtension}">
+                        <source data-src="${displayUrl}" type="video/${fileExtension}">
                         您的浏览器不支持视频标签。
                     </video>
                 ` : `
-                    ${isSupported ? `<img class="gallery-image lazy" data-src="${url}" alt="Image">` : icon}
+                    ${isSupported ? `<img class="gallery-image lazy" data-src="${displayUrl}" alt="Image">` : icon}
                 `}
                 <div class="upload-time">上传时间: ${new Date(parseInt(timestamp)).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
             </div>
         `;
     }).join('');
     
-    const html = `<!DOCTYPE html>
+    const html = `
+<!DOCTYPE html>
 <html>
 <head>
-    <title>图库管理</title>
+    <title>图库</title>
     <link rel="icon" href="https://p1.meituan.net/csc/c195ee91001e783f39f41ffffbbcbd484286.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --warning-color: #f72585;
-        }
-        
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0; 
-            padding: 20px; 
-            min-height: 100vh;
-        }
-        
-        .header { 
-            position: sticky; 
-            top: 0; 
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 1000; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            padding: 15px 20px; 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
-            border-radius: 12px; 
-            flex-wrap: wrap; 
-        }
-        
-        .header-left { 
-            flex: 1; 
-            color: var(--dark-color);
-            font-weight: 500;
-        }
-        
-        .header-right { 
-            display: flex; 
-            gap: 10px; 
-            justify-content: flex-end; 
-            flex: 1; 
-            flex-wrap: wrap; 
-        }
-        
-        .gallery { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 16px; 
-        }
-        
-        .media-container { 
-            position: relative; 
-            overflow: hidden; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
-            aspect-ratio: 1 / 1; 
-            transition: transform 0.3s, box-shadow 0.3s; 
-            background: white;
-        }
-        
-        .media-type { 
-            position: absolute; 
-            top: 10px; 
-            left: 10px; 
-            background-color: rgba(0, 0, 0, 0.7); 
-            color: white; 
-            padding: 5px 10px; 
-            border-radius: 20px; 
-            font-size: 12px; 
-            z-index: 10; 
-            cursor: pointer; 
-        }
-        
-        .upload-time { 
-            position: absolute; 
-            bottom: 10px; 
-            left: 10px; 
-            background-color: rgba(255, 255, 255, 0.9); 
-            padding: 5px 10px; 
-            border-radius: 20px; 
-            color: #000; 
-            font-size: 12px; 
-            z-index: 10; 
-            display: none; 
-        }
-        
-        .media-container:hover { 
-            transform: scale(1.05); 
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); 
-        }
-        
-        .media-container:hover .upload-time {
-            display: block;
-        }
-        
-        .gallery-image { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-            transition: opacity 0.3s; 
-            opacity: 0; 
-        }
-        
-        .gallery-image.loaded { 
-            opacity: 1; 
-        }
-        
-        .media-container.selected { 
-            border: 2px solid var(--primary-color); 
-            background-color: rgba(67, 97, 238, 0.1); 
-        }
-        
-        .footer { 
-            margin-top: 20px; 
-            text-align: center; 
-            font-size: 18px; 
-            color: white; 
-            padding: 20px;
-        }
-        
-        .delete-button, .copy-button { 
-            background-color: var(--warning-color); 
-            color: white; 
-            border: none; 
-            border-radius: 20px; 
-            padding: 10px 20px; 
-            cursor: pointer; 
-            transition: background-color 0.3s; 
-            width: auto; 
-            font-weight: 500;
-        }
-        
-        .delete-button:hover, .copy-button:hover { 
-            background-color: #d11a6d; 
-            transform: translateY(-2px);
-        }
-        
-        .hidden { 
-            display: none; 
-        }
-        
-        .dropdown { 
-            position: relative; 
-            display: inline-block; 
-        }
-        
-        .dropdown-content { 
-            display: none; 
-            position: absolute; 
-            background-color: #f9f9f9; 
-            min-width: 160px; 
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); 
-            z-index: 1; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-        }
-        
-        .dropdown-content button { 
-            color: black; 
-            padding: 12px 16px; 
-            text-decoration: none; 
-            display: block; 
-            background: none; 
-            border: none; 
-            width: 100%; 
-            text-align: left; 
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .dropdown-content button:hover { 
-            background-color: #f1f1f1; 
-        }
-        
-        .dropdown:hover .dropdown-content { 
-            display: block; 
-        }
-        
-        .select-all-button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-weight: 500;
-        }
-        
-        .select-all-button:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-        
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .header { position: sticky; top: 0; background-color: #ffffff; z-index: 1000; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-radius: 8px; flex-wrap: wrap; }
+        .header-left { flex: 1; }
+        .header-right { display: flex; gap: 10px; justify-content: flex-end; flex: 1; justify-content: flex-end; flex-wrap: wrap; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+        .media-container { position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); aspect-ratio: 1 / 1; transition: transform 0.3s, box-shadow 0.3s; }
+        .media-type { position: absolute; top: 10px; left: 10px; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 5px; border-radius: 5px; font-size: 14px; z-index: 10; cursor: pointer; }
+        .upload-time { position: absolute; bottom: 10px; left: 10px; background-color: rgba(255, 255, 255, 0.7); padding: 5px; border-radius: 5px; color: #000; font-size: 14px; z-index: 10; display: none; }
+        .media-container:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); }
+        .gallery-image { width: 100%; height: 100%; object-fit: contain; transition: opacity 0.3s; opacity: 0; }
+        .gallery-image.loaded { opacity: 1; }
+        .media-container.selected { border: 2px solid #007bff; background-color: rgba(0, 123, 255, 0.1); }
+        .footer { margin-top: 20px; text-align: center; font-size: 18px; color: #555; }
+        .delete-button, .copy-button { background-color: #ff4d4d; color: white; border: none; border-radius: 5px; padding: 10px 15px; cursor: pointer; transition: background-color 0.3s; width: auto; }
+        .delete-button:hover, .copy-button:hover { background-color: #ff1a1a; }
+        .hidden { display: none; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .dropdown-content button { color: black; padding: 12px 16px; text-decoration: none; display: block; background: none; border: none; width: 100%; text-align: left; }
+        .dropdown-content button:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
         @media (max-width: 768px) {
-            .header-left, .header-right { 
-                flex: 1 1 100%; 
-                justify-content: flex-start; 
-            }
-            
-            .header-right { 
-                margin-top: 10px; 
-            }
-            
-            .gallery { 
-                grid-template-columns: repeat(2, 1fr); 
-            }
-            
-            body {
-                padding: 10px;
-            }
+            .header-left, .header-right { flex: 1 1 100%; justify-content: flex-start; }
+            .header-right { margin-top: 10px; }
+            .gallery { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
     <script>
@@ -1472,7 +655,7 @@ async function generateAdminPage(DATABASE) {
                     <button onclick="copyFormattedLinks('markdown')">Markdown</button>
                 </div>
             </div>
-            <button id="select-all-button" class="select-all-button" onclick="selectAllImages()">全选</button>
+            <button id="select-all-button" class="delete-button" onclick="selectAllImages()">全选</button>
             <button id="delete-button" class="delete-button" onclick="deleteSelectedImages()">删除</button>
         </div>
     </div>
@@ -1716,8 +899,10 @@ async function handleDeleteImagesRequest(request, DATABASE, USERNAME, PASSWORD) 
     }
 }
 
+// 新增的随机图片API处理函数
 async function handleRandomRequest(request, DATABASE) {
     try {
+        // 获取所有图片媒体数据
         const imageMedia = await fetchImageMediaData(DATABASE);
         
         if (imageMedia.length === 0) {
@@ -1729,12 +914,15 @@ async function handleRandomRequest(request, DATABASE) {
             });
         }
         
+        // 随机选择一张图片
         const randomIndex = Math.floor(Math.random() * imageMedia.length);
         const randomImage = imageMedia[randomIndex];
         
+        // 返回图片信息或重定向到图片URL
         const acceptHeader = request.headers.get('accept') || '';
         
         if (acceptHeader.includes('application/json')) {
+            // 如果客户端请求JSON，返回图片信息
             return new Response(JSON.stringify({
                 url: randomImage.url,
                 fileId: randomImage.fileId,
@@ -1743,6 +931,7 @@ async function handleRandomRequest(request, DATABASE) {
                 headers: { 'Content-Type': 'application/json' }
             });
         } else {
+            // 否则重定向到图片URL
             return new Response(null, {
                 status: 302,
                 headers: {
@@ -1763,6 +952,7 @@ async function handleRandomRequest(request, DATABASE) {
     }
 }
 
+// 获取图片媒体数据（只返回图片文件）
 async function fetchImageMediaData(DATABASE) {
     const result = await DATABASE.prepare('SELECT url, fileId FROM media').all();
     const mediaData = result.results.map(row => ({
@@ -1771,6 +961,7 @@ async function fetchImageMediaData(DATABASE) {
         timestamp: parseInt(row.url.split('/').pop().split('.')[0])
     }));
     
+    // 过滤出图片文件（基于文件扩展名）
     const imageExtensions = [
         'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'
     ];
@@ -1783,6 +974,7 @@ async function fetchImageMediaData(DATABASE) {
     return imageMedia;
 }
 
+// 增强的文件类型检测函数
 function isImageFile(url) {
     const imageExtensions = [
         'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'
@@ -1790,15 +982,18 @@ function isImageFile(url) {
     
     const fileExtension = url.split('.').pop().toLowerCase();
     
+    // 基础扩展名检查
     if (!imageExtensions.includes(fileExtension)) {
         return false;
     }
     
+    // 额外的安全检查：确保URL格式正确
     try {
         const urlObj = new URL(url);
         const pathname = urlObj.pathname;
         const filename = pathname.split('/').pop();
         
+        // 检查文件名是否包含时间戳格式（基于您当前的命名规则）
         const timestampPart = filename.split('.')[0];
         if (!/^\d+$/.test(timestampPart)) {
             return false;
